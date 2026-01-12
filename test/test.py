@@ -8,16 +8,23 @@ import matplotlib.pyplot as plt
 # Obtener directorio del script
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Configuraciones
+# ============ CONFIGURACIONES ============
 TOPIC = "usm/casa_central/ldr_sensor"
-BROKER = "broker.hivemq.com"
+
+# Elige UN broker (comenta los otros):
+BROKER = "broker.hivemq.com"     # Opción 1: Broker público (requiere internet)
+# BROKER = "192.168.1.88"        # Opción 2: IP del PC Linux con Mosquitto
+# BROKER = "localhost"           # Opción 3: Broker local en este mismo PC
+# =========================================
+
 FILE_NAME = os.path.join(SCRIPT_DIR, "historico_voltaje.csv")
 
 def on_connect(client, userdata, flags, rc, properties=None):
     if rc == 0:
         print("✅ Conectado al broker MQTT correctamente!")
-        client.subscribe(TOPIC)
-        print(f"📡 Suscrito al topic: {TOPIC}")
+        # Suscribir con QoS 1 para recibir mensajes perdidos
+        client.subscribe(TOPIC, qos=1)
+        print(f"📡 Suscrito al topic: {TOPIC} (QoS 1)")
         print(f"💾 Los datos se guardarán en: {FILE_NAME}")
         print("-" * 50)
         print("Esperando datos del ESP32... (Ctrl+C para salir)")
@@ -50,8 +57,9 @@ def on_message(client, userdata, message):
     except Exception as e:
         print(f"Error procesando mensaje: {e}")
 
-# Configurar Cliente MQTT (API v2)
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+# Configurar Cliente MQTT (API v2) con sesión persistente
+CLIENT_ID = "SolarMonitor-Python-001"  # ID único para el cliente
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=CLIENT_ID, clean_session=False)
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message

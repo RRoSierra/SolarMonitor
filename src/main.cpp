@@ -3,9 +3,10 @@
 #include <PubSubClient.h>
 
 // --- Configuración de Red ---
-const char* ssid = "MOVISTAR-WIFI6-F020";
+const char* ssid = "MOVISTAR_WIFI6-F020";
 const char* password = "A8q9EoQr2dLSfuNoEdg4";
-const char* mqtt_server = "broker.hivemq.com"; // Broker público gratuito
+const char* mqtt_server = "broker.hivemq.com"; // Broker público (requiere internet)
+// const char* mqtt_server = "192.168.1.88";   // Broker local (IP de tu PC)
 
 // --- Configuración de Hardware ---
 const int ldrPin = 34; // Pin ADC (GPIO34)
@@ -71,8 +72,8 @@ void loop() {
   Serial.print("Enviando: ");
   Serial.println(payload);
   
-  // Publicar en un tópico único (Cámbialo si quieres privacidad)
-  client.publish("usm/casa_central/ldr_sensor", payload.c_str());
+  // Publicar con QoS 1 (garantiza entrega al broker)
+  client.publish("usm/casa_central/ldr_sensor", payload.c_str(), true);  // true = retained
 
   delay(10000); // Envía datos cada 10 segundos
 }
